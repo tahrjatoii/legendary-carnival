@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClipForge AI — Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --purple: #5b21b6;
+  --purple-l: #7c3aed;
+  --purple-bg: #f5f3ff;
+  --purple-mid: #ede9fe;
+  --text: #0f0a1e;
+  --text2: #4b4869;
+  --text3: #9390a8;
+  --border: #e5e2f0;
+  --bg: #f8f7fc;
+  --white: #fff;
+  --green: #16a34a;
+  --red: #dc2626;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+/* ── NAV ── */
+nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.nav-brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:1rem;color:var(--text);}
+.logo-box{width:28px;height:28px;background:linear-gradient(135deg,var(--purple-l),var(--purple));border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.8rem;}
+.nav-right{display:flex;align-items:center;gap:12px;}
+.credits-badge{background:var(--purple-bg);border:1px solid var(--purple-mid);color:var(--purple);font-size:0.75rem;font-weight:700;padding:5px 12px;border-radius:100px;}
+.btn-upgrade{background:var(--purple);color:#fff;font-size:0.8rem;font-weight:700;padding:7px 16px;border-radius:8px;border:none;cursor:pointer;font-family:inherit;transition:all .2s;}
+.btn-upgrade:hover{background:var(--purple-l);transform:translateY(-1px);}
+
+/* ── LAYOUT ── */
+.app-wrap{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 56px);}
+
+/* ── SIDEBAR ── */
+.sidebar{background:var(--white);border-right:1px solid var(--border);padding:16px 10px;display:flex;flex-direction:column;gap:2px;}
+.sb-label{font-size:0.62rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);padding:8px 10px;margin-top:8px;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;font-size:0.84rem;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;}
+.sb-item:hover{background:var(--purple-mid);color:var(--purple);}
+.sb-item.active{background:var(--purple-bg);color:var(--purple);font-weight:700;}
+.sb-item .icon{font-size:1rem;width:20px;text-align:center;}
+
+/* ── MAIN ── */
+.main{padding:28px 32px;overflow-y:auto;}
+
+/* ── SCREEN: INPUT ── */
+#screen-input{display:block;}
+#screen-processing{display:none;}
+#screen-results{display:none;}
+
+.page-title{font-size:1.4rem;font-weight:800;letter-spacing:-0.5px;margin-bottom:4px;}
+.page-sub{font-size:0.875rem;color:var(--text3);margin-bottom:28px;}
+
+.input-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:28px;}
+
+.tab-row{display:flex;gap:4px;margin-bottom:20px;}
+.tab{padding:8px 16px;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;border:1.5px solid transparent;transition:all .15s;font-family:inherit;}
+.tab.active{background:var(--purple-bg);border-color:var(--purple-mid);color:var(--purple);}
+.tab:not(.active){color:var(--text3);}
+.tab:not(.active):hover{color:var(--text2);background:var(--bg);}
+
+/* URL input area */
+.url-area{margin-bottom:20px;}
+.url-area label{display:block;font-size:0.78rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
+.url-input-wrap{display:flex;gap:10px;}
+.url-input{flex:1;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:0.9rem;color:var(--text);outline:none;transition:border-color .2s;background:var(--bg);}
+.url-input::placeholder{color:var(--text3);}
+.url-input:focus{border-color:var(--purple);background:#fff;}
+.url-input.error{border-color:var(--red);}
+.error-msg{font-size:0.75rem;color:var(--red);margin-top:5px;display:none;}
+.error-msg.show{display:block;}
+
+/* Upload zone */
+.upload-zone{border:2px dashed var(--border);border-radius:12px;padding:36px;text-align:center;cursor:pointer;transition:all .2s;display:none;}
+.upload-zone:hover{border-color:var(--purple);background:var(--purple-bg);}
+.upload-zone.active{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.upload-icon{font-size:2rem;}
+.upload-zone h3{font-size:0.95rem;font-weight:700;}
+.upload-zone p{font-size:0.8rem;color:var(--text3);}
+.upload-zone .browse{color:var(--purple);font-weight:600;cursor:pointer;}
+
+/* Settings grid */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;}
+.setting-block label{display:block;font-size:0.7rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
+.chip-group{display:flex;flex-wrap:wrap;gap:6px;}
+.chip{padding:6px 13px;border-radius:100px;border:1.5px solid var(--border);font-size:0.78rem;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s;font-family:inherit;background:white;}
+.chip:hover{border-color:var(--purple);color:var(--purple);}
+.chip.active{background:var(--purple);border-color:var(--purple);color:#fff;}
+
+.generate-btn{width:100%;padding:14px;background:var(--purple);color:#fff;border:none;border-radius:10px;font-family:inherit;font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.generate-btn:hover{background:var(--purple-l);transform:translateY(-1px);box-shadow:0 6px 20px rgba(91,33,182,.3);}
+.generate-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+
+/* ── PROCESSING SCREEN ── */
+.proc-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;}
+.proc-animation{position:relative;width:120px;height:120px;margin:0 auto 28px;}
+.proc-ring{position:absolute;inset:0;border-radius:50%;border:3px solid transparent;animation:spin 1.5s linear infinite;}
+.proc-ring:nth-child(1){border-top-color:var(--purple);border-right-color:var(--purple-mid);}
+.proc-ring:nth-child(2){inset:12px;border-top-color:transparent;border-bottom-color:var(--purple-l);animation-direction:reverse;animation-duration:1s;}
+.proc-inner{position:absolute;inset:24px;background:var(--purple-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.proc-title{font-size:1.3rem;font-weight:800;letter-spacing:-.5px;margin-bottom:6px;}
+.proc-sub{font-size:0.875rem;color:var(--text3);margin-bottom:28px;}
+.proc-steps{display:flex;flex-direction:column;gap:10px;width:100%;max-width:400px;text-align:left;}
+.proc-step{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;font-size:0.84rem;font-weight:600;transition:all .3s;}
+.proc-step .s-icon{font-size:1rem;width:20px;flex-shrink:0;}
+.proc-step.waiting{color:var(--text3);}
+.proc-step.running{background:var(--purple-bg);color:var(--purple);}
+.proc-step.done{color:var(--green);}
+.proc-step .s-status{margin-left:auto;font-size:0.72rem;}
+.proc-bar-wrap{width:100%;max-width:400px;margin-top:20px;}
+.proc-bar-label{display:flex;justify-content:space-between;font-size:0.78rem;font-weight:600;color:var(--text3);margin-bottom:6px;}
+.proc-bar-pct{color:var(--purple);}
+.proc-bar-bg{background:var(--border);border-radius:6px;height:8px;overflow:hidden;}
+.proc-bar-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--purple-l));border-radius:6px;transition:width .5s ease;}
+.proc-cancel{margin-top:16px;background:none;border:1.5px solid var(--border);color:var(--text3);padding:8px 20px;border-radius:8px;font-family:inherit;font-size:0.82rem;cursor:pointer;transition:all .2s;}
+.proc-cancel:hover{border-color:var(--red);color:var(--red);}
+
+/* ── RESULTS SCREEN ── */
+.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+.results-title{font-size:1.3rem;font-weight:800;letter-spacing:-.5px;}
+.results-meta{font-size:0.8rem;color:var(--text3);margin-top:2px;}
+.results-actions{display:flex;gap:8px;}
+.btn-secondary{padding:9px 18px;border-radius:8px;border:1.5px solid var(--border);background:white;font-family:inherit;font-size:0.84rem;font-weight:600;cursor:pointer;color:var(--text2);transition:all .2s;}
+.btn-secondary:hover{border-color:var(--purple);color:var(--purple);}
+.btn-primary{padding:9px 18px;border-radius:8px;border:none;background:var(--purple);font-family:inherit;font-size:0.84rem;font-weight:700;cursor:pointer;color:#fff;transition:all .2s;}
+.btn-primary:hover{background:var(--purple-l);}
+
+/* Filters row */
+.filter-row{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.filter-chip{padding:6px 14px;border-radius:100px;border:1.5px solid var(--border);font-size:0.78rem;font-weight:600;color:var(--text3);cursor:pointer;transition:all .15s;font-family:inherit;background:white;}
+.filter-chip:hover{border-color:var(--purple);color:var(--purple);}
+.filter-chip.active{background:var(--purple);border-color:var(--purple);color:#fff;}
+
+/* Clips grid */
+.clips-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;}
+.clip-card{background:white;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:all .25s;position:relative;}
+.clip-card:hover{border-color:var(--purple-mid);box-shadow:0 8px 28px rgba(91,33,182,.12);transform:translateY(-3px);}
+.clip-card.selected{border-color:var(--purple);box-shadow:0 0 0 3px rgba(91,33,182,.15);}
+.clip-thumb{height:240px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;position:relative;flex-direction:column;gap:6px;}
+.virality-badge{position:absolute;top:8px;right:8px;padding:3px 8px;border-radius:100px;font-size:0.65rem;font-weight:800;backdrop-filter:blur(8px);}
+.vir-high{background:rgba(22,163,74,.15);color:#16a34a;border:1px solid rgba(22,163,74,.3);}
+.vir-med{background:rgba(234,179,8,.15);color:#ca8a04;border:1px solid rgba(234,179,8,.3);}
+.platform-tag{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);color:#fff;font-size:0.6rem;font-weight:700;padding:3px 7px;border-radius:5px;backdrop-filter:blur(4px);}
+.clip-info{padding:12px;}
+.clip-title{font-size:0.8rem;font-weight:700;color:var(--text);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.clip-meta{display:flex;align-items:center;justify-content:space-between;}
+.clip-duration{font-size:0.7rem;color:var(--text3);font-weight:600;}
+.clip-score{display:flex;align-items:center;gap:3px;font-size:0.7rem;font-weight:700;}
+.clip-actions{display:flex;gap:4px;padding:0 12px 12px;}
+.clip-btn{flex:1;padding:6px;border-radius:7px;font-family:inherit;font-size:0.72rem;font-weight:700;cursor:pointer;transition:all .15s;border:none;}
+.clip-dl{background:var(--purple-bg);color:var(--purple);}
+.clip-dl:hover{background:var(--purple);color:#fff;}
+.clip-pub{background:var(--bg);color:var(--text2);border:1px solid var(--border);}
+.clip-pub:hover{background:var(--purple-bg);color:var(--purple);border-color:var(--purple-mid);}
+
+/* Select overlay */
+.select-overlay{position:absolute;top:8px;left:50%;transform:translateX(-50%);opacity:0;transition:opacity .2s;}
+.clip-card:hover .select-overlay{opacity:1;}
+.select-check{width:22px;height:22px;background:white;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:0.7rem;}
+
+/* new project btn */
+.new-project-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--purple-bg);border:1.5px dashed var(--purple-mid);color:var(--purple);border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit;}
+.new-project-btn:hover{background:var(--purple-mid);}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:12px 20px;border-radius:10px;font-size:0.85rem;font-weight:600;opacity:0;transform:translateY(10px);transition:all .3s;z-index:999;max-width:300px;}
+.toast.show{opacity:1;transform:translateY(0);}
+
+/* responsive */
+@media(max-width:768px){
+  .app-wrap{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+  .main{padding:16px;}
+  .settings-grid{grid-template-columns:1fr 1fr;}
+  .clips-grid{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">
+    <div class="logo-box">✂</div>
+    ClipForge AI
+  </div>
+  <div class="nav-right">
+    <div class="credits-badge">⚡ 47 credits left</div>
+    <button class="btn-upgrade">Upgrade →</button>
+  </div>
+</nav>
+
+<div class="app-wrap">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-label">Workspace</div>
+    <div class="sb-item active" onclick="showScreen('input')"><span class="icon">➕</span> New Project</div>
+    <div class="sb-item" onclick="showToast('Opening projects...')"><span class="icon">📂</span> My Projects</div>
+    <div class="sb-item" onclick="showToast('Opening history...')"><span class="icon">🕒</span> History</div>
+    <div class="sb-label">Tools</div>
+    <div class="sb-item" onclick="showToast('Opening clip editor...')"><span class="icon">✂️</span> Clip Editor</div>
+    <div class="sb-item" onclick="showToast('Opening captions...')"><span class="icon">💬</span> Captions</div>
+    <div class="sb-item" onclick="showToast('Opening brand kit...')"><span class="icon">🎨</span> Brand Kit</div>
+    <div class="sb-label">Account</div>
+    <div class="sb-item" onclick="showToast('Opening settings...')"><span class="icon">⚙️</span> Settings</div>
+    <div class="sb-item" onclick="showToast('Opening billing...')"><span class="icon">💳</span> Billing</div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ── SCREEN 1: INPUT ── -->
+    <div id="screen-input">
+      <div class="page-title">New Project</div>
+      <div class="page-sub">Paste a YouTube link or upload a video to generate viral short clips.</div>
+
+      <div class="input-card">
+        <!-- Tabs -->
+        <div class="tab-row">
+          <button class="tab active" onclick="switchTab('url', this)">🔗 Paste Link</button>
+          <button class="tab" onclick="switchTab('upload', this)">📁 Upload Video</button>
+        </div>
+
+        <!-- URL area -->
+        <div class="url-area" id="tab-url">
+          <label>YouTube / Podcast / Webinar URL</label>
+          <div class="url-input-wrap">
+            <input class="url-input" id="url-input" type="text"
+              placeholder="https://www.youtube.com/watch?v=..."
+              oninput="onUrlInput(this)">
+            <button class="generate-btn" id="gen-btn" onclick="startGenerate()" style="width:auto;padding:12px 24px;font-size:0.9rem;">
+              ⚡ Generate Clips
+            </button>
+          </div>
+          <div class="error-msg" id="error-msg">⚠ Please paste a valid YouTube, podcast, or webinar URL</div>
+        </div>
+
+        <!-- Upload area -->
+        <div class="upload-zone" id="tab-upload" onclick="showToast('File upload is available in desktop app!')">
+          <div class="upload-icon">☁️</div>
+          <h3>Drag &amp; drop your video</h3>
+          <p>MP4, MOV, AVI, MKV — up to 10 GB</p>
+          <p><span class="browse">Browse files</span> or drag here</p>
+        </div>
+
+        <!-- Settings -->
+        <div class="settings-grid" style="margin-top:20px;">
+          <div class="setting-block">
+            <label>Clip Duration</label>
+            <div class="chip-group">
+              <button class="chip" onclick="pick(this,'dur')">15s</button>
+              <button class="chip active" onclick="pick(this,'dur')">30s</button>
+              <button class="chip" onclick="pick(this,'dur')">45s</button>
+              <button class="chip" onclick="pick(this,'dur')">60s</button>
+            </div>
+          </div>
+          <div class="setting-block">
+            <label>Platform</label>
+            <div class="chip-group">
+              <button class="chip active" onclick="pick(this,'plat')">TikTok</button>
+              <button class="chip" onclick="pick(this,'plat')">Reels</button>
+              <button class="chip" onclick="pick(this,'plat')">Shorts</button>
+              <button class="chip" onclick="pick(this,'plat')">LinkedIn</button>
+            </div>
+          </div>
+          <div class="setting-block">
+            <label>Caption Style</label>
+            <div class="chip-group">
+              <button class="chip active" onclick="pick(this,'cap')">TikTok Bold</button>
+              <button class="chip" onclick="pick(this,'cap')">Kinetic</button>
+              <button class="chip" onclick="pick(this,'cap')">Minimal</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Example links -->
+        <div style="border-top:1px solid var(--border);padding-top:16px;margin-top:4px;">
+          <div style="font-size:0.72rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">Try an example</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="filter-chip" onclick="fillExample('https://www.youtube.com/watch?v=dQw4w9WgXcQ')">🎤 Music Video</button>
+            <button class="filter-chip" onclick="fillExample('https://www.youtube.com/watch?v=JGwWNGJdvx8')">🎙 Podcast Interview</button>
+            <button class="filter-chip" onclick="fillExample('https://www.youtube.com/watch?v=ZbZSe6N_BXs')">📖 Ted Talk</button>
+            <button class="filter-chip" onclick="fillExample('https://www.youtube.com/watch?v=aircAruvnKk')">💻 Tech Tutorial</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SCREEN 2: PROCESSING ── -->
+    <div id="screen-processing">
+      <div class="proc-wrap">
+        <div class="proc-animation">
+          <div class="proc-ring"></div>
+          <div class="proc-ring"></div>
+          <div class="proc-inner">🧠</div>
+        </div>
+        <div class="proc-title">AI is analyzing your video…</div>
+        <div class="proc-sub" id="proc-url-display"></div>
+
+        <div class="proc-steps">
+          <div class="proc-step waiting" id="step-0"><span class="s-icon">📥</span> Downloading &amp; extracting audio<span class="s-status" id="st-0">Waiting</span></div>
+          <div class="proc-step waiting" id="step-1"><span class="s-icon">🎤</span> Whisper transcribing speech<span class="s-status" id="st-1">Waiting</span></div>
+          <div class="proc-step waiting" id="step-2"><span class="s-icon">🧬</span> NLP analyzing transcript<span class="s-status" id="st-2">Waiting</span></div>
+          <div class="proc-step waiting" id="step-3"><span class="s-icon">🔥</span> Detecting highlight moments<span class="s-status" id="st-3">Waiting</span></div>
+          <div class="proc-step waiting" id="step-4"><span class="s-icon">✂️</span> Generating vertical clips<span class="s-status" id="st-4">Waiting</span></div>
+          <div class="proc-step waiting" id="step-5"><span class="s-icon">💬</span> Burning captions &amp; branding<span class="s-status" id="st-5">Waiting</span></div>
+        </div>
+
+        <div class="proc-bar-wrap">
+          <div class="proc-bar-label">
+            <span id="proc-label">Initializing…</span>
+            <span class="proc-bar-pct" id="proc-pct">0%</span>
+          </div>
+          <div class="proc-bar-bg"><div class="proc-bar-fill" id="proc-bar" style="width:0%"></div></div>
+        </div>
+
+        <button class="proc-cancel" onclick="cancelProcessing()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- ── SCREEN 3: RESULTS ── -->
+    <div id="screen-results">
+      <div class="results-header">
+        <div>
+          <div class="results-title">🎉 24 clips ready to post!</div>
+          <div class="results-meta" id="results-source-label"></div>
+        </div>
+        <div class="results-actions">
+          <button class="new-project-btn" onclick="showScreen('input')">➕ New Project</button>
+          <button class="btn-secondary" onclick="showToast('Selecting all 24 clips...')">☑ Select All</button>
+          <button class="btn-primary" onclick="showToast('Downloading 24 clips as ZIP...')">⬇ Download All</button>
+        </div>
+      </div>
+
+      <!-- Filter row -->
+      <div class="filter-row">
+        <button class="filter-chip active" onclick="pickFilter(this,'all')">All (24)</button>
+        <button class="filter-chip" onclick="pickFilter(this,'high')">🔥 High Virality</button>
+        <button class="filter-chip" onclick="pickFilter(this,'tiktok')">TikTok</button>
+        <button class="filter-chip" onclick="pickFilter(this,'reels')">Instagram Reels</button>
+        <button class="filter-chip" onclick="pickFilter(this,'shorts')">YouTube Shorts</button>
+        <button class="filter-chip" onclick="pickFilter(this,'30s')">30s</button>
+        <button class="filter-chip" onclick="pickFilter(this,'60s')">60s</button>
+      </div>
+
+      <!-- Clips grid -->
+      <div class="clips-grid" id="clips-grid"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──
+let currentUrl = '';
+let processingTimer = null;
+
+const CLIPS = [
+  { id:1, emoji:'🎤', title:'The Hook That Went Viral', dur:'0:28', score:94, vir:'high', platform:'TikTok', bg:'linear-gradient(160deg,#f3f0ff,#c4b5fd)' },
+  { id:2, emoji:'🔥', title:'Mind-Blowing Revelation', dur:'0:31', score:88, vir:'high', platform:'Reels', bg:'linear-gradient(160deg,#fdf4ff,#e879f9)' },
+  { id:3, emoji:'💡', title:'This Changes Everything', dur:'0:45', score:82, vir:'high', platform:'Shorts', bg:'linear-gradient(160deg,#fffbeb,#fcd34d)' },
+  { id:4, emoji:'😂', title:'Unexpected Plot Twist', dur:'0:22', score:79, vir:'med', platform:'TikTok', bg:'linear-gradient(160deg,#f0fdf4,#86efac)' },
+  { id:5, emoji:'🚀', title:'The Moment Everything Clicked', dur:'0:58', score:91, vir:'high', platform:'Reels', bg:'linear-gradient(160deg,#eff6ff,#93c5fd)' },
+  { id:6, emoji:'🎯', title:'Key Insight #3', dur:'0:35', score:74, vir:'med', platform:'LinkedIn', bg:'linear-gradient(160deg,#fff7ed,#fdba74)' },
+  { id:7, emoji:'🌊', title:'Best Quote of the Episode', dur:'0:19', score:85, vir:'high', platform:'TikTok', bg:'linear-gradient(160deg,#ecfdf5,#6ee7b7)' },
+  { id:8, emoji:'⚡', title:'The Controversial Take', dur:'0:42', score:92, vir:'high', platform:'Shorts', bg:'linear-gradient(160deg,#faf5ff,#a78bfa)' },
+  { id:9, emoji:'🎬', title:'Behind the Scenes', dur:'0:27', score:68, vir:'med', platform:'Reels', bg:'linear-gradient(160deg,#fff1f2,#fda4af)' },
+  { id:10, emoji:'📚', title:'The Lesson Nobody Talks About', dur:'0:51', score:77, vir:'med', platform:'LinkedIn', bg:'linear-gradient(160deg,#f0f9ff,#7dd3fc)' },
+  { id:11, emoji:'🏆', title:'Top 3 Takeaways', dur:'0:33', score:83, vir:'high', platform:'Shorts', bg:'linear-gradient(160deg,#fffbeb,#fde68a)' },
+  { id:12, emoji:'🤯', title:'Wait… What?!', dur:'0:15', score:89, vir:'high', platform:'TikTok', bg:'linear-gradient(160deg,#fdf4ff,#d8b4fe)' },
+];
+
+// ── UTILS ──
+function $(id){ return document.getElementById(id); }
+
+function showScreen(name) {
+  $('screen-input').style.display = name==='input' ? 'block' : 'none';
+  $('screen-processing').style.display = name==='processing' ? 'block' : 'none';
+  $('screen-results').style.display = name==='results' ? 'block' : 'none';
+}
+
+function showToast(msg, dur=2800) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+// ── TAB SWITCH ──
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  $('tab-url').style.display = tab==='url' ? 'block' : 'none';
+  const uz = $('tab-upload');
+  if (tab==='upload') { uz.style.display='flex'; uz.classList.add('active'); }
+  else { uz.style.display='none'; uz.classList.remove('active'); }
+}
+
+// ── CHIP PICKERS ──
+function pick(btn, group) {
+  btn.closest('.chip-group').querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function pickFilter(btn, val) {
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  filterClips(val);
+}
+
+// ── URL INPUT ──
+function onUrlInput(el) {
+  $('error-msg').classList.remove('show');
+  el.classList.remove('error');
+}
+
+function fillExample(url) {
+  const inp = $('url-input');
+  inp.value = url;
+  inp.classList.remove('error');
+  $('error-msg').classList.remove('show');
+  inp.focus();
+}
+
+function isValidUrl(url) {
+  return url.trim().length > 10 && (url.includes('youtube.com') || url.includes('youtu.be') || url.includes('spotify') || url.includes('podcast') || url.includes('http'));
+}
+
+// ── GENERATE ──
+function startGenerate() {
+  const url = $('url-input').value.trim();
+  if (!url || !isValidUrl(url)) {
+    $('url-input').classList.add('error');
+    $('error-msg').classList.add('show');
+    return;
+  }
+  currentUrl = url;
+  showScreen('processing');
+  $('proc-url-display').textContent = url.length > 60 ? url.substring(0,57)+'…' : url;
+  runProcessingAnimation();
+}
+
+// ── PROCESSING ANIMATION ──
+const steps = [
+  { label:'Downloading & extracting audio…', duration:1800 },
+  { label:'Whisper transcribing speech…', duration:2500 },
+  { label:'Analyzing transcript with NLP…', duration:2000 },
+  { label:'Detecting highlight moments…', duration:1800 },
+  { label:'Generating vertical clips…', duration:2200 },
+  { label:'Burning captions & branding…', duration:1500 },
+];
+
+function runProcessingAnimation() {
+  let stepIndex = 0;
+  let pct = 0;
+  const totalTime = steps.reduce((a,s)=>a+s.duration,0);
+  let elapsed = 0;
+  const timers = [];
+
+  // Reset all steps
+  for(let i=0;i<6;i++){
+    $('step-'+i).className = 'proc-step waiting';
+    $('st-'+i).textContent = 'Waiting';
+  }
+
+  const tickStep = () => {
+    if(stepIndex >= steps.length) return;
+    const s = steps[stepIndex];
+
+    // Start this step
+    $('step-'+stepIndex).className = 'proc-step running';
+    $('st-'+stepIndex).textContent = '⟳ Running';
+    $('proc-label').textContent = s.label;
+
+    // Animate progress for this step
+    const startPct = pct;
+    const endPct = Math.round(((elapsed + s.duration) / totalTime) * 100);
+    const step = s.duration / 20;
+    let tick = 0;
+    const interval = setInterval(() => {
+      tick++;
+      const p = Math.min(endPct, Math.round(startPct + (endPct - startPct) * (tick/20)));
+      $('proc-bar').style.width = p + '%';
+      $('proc-pct').textContent = p + '%';
+    }, step);
+    timers.push(interval);
+
+    const t = setTimeout(() => {
+      clearInterval(interval);
+      $('step-'+stepIndex).className = 'proc-step done';
+      $('st-'+stepIndex).textContent = '✓ Done';
+      $('proc-bar').style.width = endPct + '%';
+      $('proc-pct').textContent = endPct + '%';
+
+      elapsed += s.duration;
+      pct = endPct;
+      stepIndex++;
+
+      if(stepIndex < steps.length) {
+        tickStep();
+      } else {
+        // Done!
+        setTimeout(() => {
+          timers.forEach(clearInterval);
+          showResults();
+        }, 600);
+      }
+    }, s.duration);
+    timers.push(t);
+  };
+
+  processingTimer = timers;
+  tickStep();
+}
+
+function cancelProcessing() {
+  if(processingTimer) processingTimer.forEach(t => { clearInterval(t); clearTimeout(t); });
+  showScreen('input');
+  showToast('Processing cancelled');
+}
+
+// ── RESULTS ──
+function showResults() {
+  showScreen('results');
+  const src = $('url-input').value.trim();
+  $('results-source-label').textContent = '📎 Source: ' + (src.length>70 ? src.slice(0,67)+'…' : src);
+  renderClips(CLIPS);
+}
+
+function renderClips(clips) {
+  const grid = $('clips-grid');
+  grid.innerHTML = '';
+  clips.forEach(c => {
+    const virClass = c.vir==='high' ? 'vir-high' : 'vir-med';
+    const virLabel = c.vir==='high' ? '🔥 ' + c.score + '/100' : '⭐ ' + c.score + '/100';
+    const el = document.createElement('div');
+    el.className = 'clip-card';
+    el.innerHTML = `
+      <div class="clip-thumb" style="background:${c.bg};">
+        <span style="font-size:2.5rem">${c.emoji}</span>
+        <span style="font-size:0.75rem;color:var(--purple);font-weight:700;">Clip #${c.id}</span>
+        <div class="virality-badge ${virClass}">${virLabel}</div>
+        <div class="platform-tag">${c.platform}</div>
+      </div>
+      <div class="clip-info">
+        <div class="clip-title">${c.title}</div>
+        <div class="clip-meta">
+          <span class="clip-duration">⏱ ${c.dur}</span>
+        </div>
+      </div>
+      <div class="clip-actions">
+        <button class="clip-btn clip-dl" onclick="event.stopPropagation();showToast('Downloading: ${c.title}')">⬇ Download</button>
+        <button class="clip-btn clip-pub" onclick="event.stopPropagation();showToast('Choose platform to publish...')">📤 Publish</button>
+      </div>
+    `;
+    el.addEventListener('click', () => {
+      el.classList.toggle('selected');
+    });
+    grid.appendChild(el);
+  });
+}
+
+function filterClips(val) {
+  let filtered = CLIPS;
+  if(val==='high') filtered = CLIPS.filter(c=>c.vir==='high');
+  else if(val==='tiktok') filtered = CLIPS.filter(c=>c.platform==='TikTok');
+  else if(val==='reels') filtered = CLIPS.filter(c=>c.platform==='Reels');
+  else if(val==='shorts') filtered = CLIPS.filter(c=>c.platform==='Shorts');
+  else if(val==='30s') filtered = CLIPS.filter(c=>parseFloat(c.dur.split(':')[1])<35);
+  else if(val==='60s') filtered = CLIPS.filter(c=>parseFloat(c.dur.split(':')[1])>=45);
+  renderClips(filtered);
+}
+
+// init
+showScreen('input');
+</script>
+</body>
+</html>
